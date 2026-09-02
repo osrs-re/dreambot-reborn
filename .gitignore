@@ -1,0 +1,29 @@
+# Maven and Java build output
+target/
+*.class
+
+# IDE metadata
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+
+# macOS and diagnostics
+.DS_Store
+*.log
+hs_err_pid*
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Runtime state and plaintext test credentials if copied into the repository
+/.dreambot-reborn/
+/accounts.json
+/accounts.vault
+/settings.json
+/jagex_cl_oldschool_LIVE.dat
+/random.dat

@@ -1,0 +1,86 @@
+package com.dreambotreborn.api.methods;
+
+/** Common animation IDs, mirrored from the RuneLite revision used by DreamBot Reborn. */
+public final class Animations
+{
+    public static final int IDLE = net.runelite.api.AnimationID.IDLE;
+    public static final int HERBLORE_PESTLE_AND_MORTAR = net.runelite.api.AnimationID.HERBLORE_PESTLE_AND_MORTAR;
+    public static final int HERBLORE_POTIONMAKING = net.runelite.api.AnimationID.HERBLORE_POTIONMAKING;
+    public static final int WOODCUTTING_BRONZE = net.runelite.api.AnimationID.WOODCUTTING_BRONZE;
+    public static final int WOODCUTTING_IRON = net.runelite.api.AnimationID.WOODCUTTING_IRON;
+    public static final int WOODCUTTING_STEEL = net.runelite.api.AnimationID.WOODCUTTING_STEEL;
+    public static final int WOODCUTTING_BLACK = net.runelite.api.AnimationID.WOODCUTTING_BLACK;
+    public static final int WOODCUTTING_MITHRIL = net.runelite.api.AnimationID.WOODCUTTING_MITHRIL;
+    public static final int WOODCUTTING_ADAMANT = net.runelite.api.AnimationID.WOODCUTTING_ADAMANT;
+    public static final int WOODCUTTING_RUNE = net.runelite.api.AnimationID.WOODCUTTING_RUNE;
+    public static final int WOODCUTTING_GILDED = net.runelite.api.AnimationID.WOODCUTTING_GILDED;
+    public static final int WOODCUTTING_DRAGON = net.runelite.api.AnimationID.WOODCUTTING_DRAGON;
+    public static final int WOODCUTTING_INFERNAL = net.runelite.api.AnimationID.WOODCUTTING_INFERNAL;
+    public static final int WOODCUTTING_3A_AXE = net.runelite.api.AnimationID.WOODCUTTING_3A_AXE;
+    public static final int WOODCUTTING_CRYSTAL = net.runelite.api.AnimationID.WOODCUTTING_CRYSTAL;
+    public static final int CONSUMING = net.runelite.api.AnimationID.CONSUMING;
+    public static final int FIREMAKING = net.runelite.api.AnimationID.FIREMAKING;
+    public static final int DEATH = net.runelite.api.AnimationID.DEATH;
+    public static final int COOKING_FIRE = net.runelite.api.AnimationID.COOKING_FIRE;
+    public static final int COOKING_RANGE = net.runelite.api.AnimationID.COOKING_RANGE;
+    public static final int COOKING_WINE = net.runelite.api.AnimationID.COOKING_WINE;
+    public static final int FLETCHING_BOW_CUTTING = net.runelite.api.AnimationID.FLETCHING_BOW_CUTTING;
+    public static final int HUNTER_LAY_BOXTRAP_BIRDSNARE = net.runelite.api.AnimationID.HUNTER_LAY_BOXTRAP_BIRDSNARE;
+    public static final int HUNTER_LAY_NETTRAP = net.runelite.api.AnimationID.HUNTER_LAY_NETTRAP;
+    public static final int HUNTER_CHECK_BIRD_SNARE = net.runelite.api.AnimationID.HUNTER_CHECK_BIRD_SNARE;
+    public static final int FLETCHING_STRING_NORMAL_SHORTBOW = net.runelite.api.AnimationID.FLETCHING_STRING_NORMAL_SHORTBOW;
+    public static final int FLETCHING_STRING_NORMAL_LONGBOW = net.runelite.api.AnimationID.FLETCHING_STRING_NORMAL_LONGBOW;
+    public static final int FLETCHING_STRING_OAK_SHORTBOW = net.runelite.api.AnimationID.FLETCHING_STRING_OAK_SHORTBOW;
+    public static final int FLETCHING_STRING_OAK_LONGBOW = net.runelite.api.AnimationID.FLETCHING_STRING_OAK_LONGBOW;
+    public static final int FLETCHING_STRING_WILLOW_SHORTBOW = net.runelite.api.AnimationID.FLETCHING_STRING_WILLOW_SHORTBOW;
+    public static final int FLETCHING_STRING_WILLOW_LONGBOW = net.runelite.api.AnimationID.FLETCHING_STRING_WILLOW_LONGBOW;
+    public static final int FLETCHING_STRING_MAPLE_SHORTBOW = net.runelite.api.AnimationID.FLETCHING_STRING_MAPLE_SHORTBOW;
+    public static final int FLETCHING_STRING_MAPLE_LONGBOW = net.runelite.api.AnimationID.FLETCHING_STRING_MAPLE_LONGBOW;
+    public static final int FLETCHING_STRING_YEW_SHORTBOW = net.runelite.api.AnimationID.FLETCHING_STRING_YEW_SHORTBOW;
+    public static final int FLETCHING_STRING_YEW_LONGBOW = net.runelite.api.AnimationID.FLETCHING_STRING_YEW_LONGBOW;
+    public static final int FLETCHING_STRING_MAGIC_SHORTBOW = net.runelite.api.AnimationID.FLETCHING_STRING_MAGIC_SHORTBOW;
+    public static final int FLETCHING_STRING_MAGIC_LONGBOW = net.runelite.api.AnimationID.FLETCHING_STRING_MAGIC_LONGBOW;
+    public static final int GEM_CUTTING_OPAL = net.runelite.api.AnimationID.GEM_CUTTING_OPAL;
+    public static final int GEM_CUTTING_JADE = net.runelite.api.AnimationID.GEM_CUTTING_JADE;
+    public static final int GEM_CUTTING_REDTOPAZ = net.runelite.api.AnimationID.GEM_CUTTING_REDTOPAZ;
+    public static final int GEM_CUTTING_SAPPHIRE = net.runelite.api.AnimationID.GEM_CUTTING_SAPPHIRE;
+    public static final int GEM_CUTTING_EMERALD = net.runelite.api.AnimationID.GEM_CUTTING_EMERALD;
+    public static final int GEM_CUTTING_RUBY = net.runelite.api.AnimationID.GEM_CUTTING_RUBY;
+    public static final int GEM_CUTTING_DIAMOND = net.runelite.api.AnimationID.GEM_CUTTING_DIAMOND;
+    public static final int GEM_CUTTING_AMETHYST = net.runelite.api.AnimationID.GEM_CUTTING_AMETHYST;
+    public static final int CRAFTING_LEATHER = net.runelite.api.AnimationID.CRAFTING_LEATHER;
+    public static final int CRAFTING_GLASSBLOWING = net.runelite.api.AnimationID.CRAFTING_GLASSBLOWING;
+    public static final int CRAFTING_SPINNING = net.runelite.api.AnimationID.CRAFTING_SPINNING;
+    public static final int CRAFTING_POTTERS_WHEEL = net.runelite.api.AnimationID.CRAFTING_POTTERS_WHEEL;
+    public static final int CRAFTING_POTTERY_OVEN = net.runelite.api.AnimationID.CRAFTING_POTTERY_OVEN;
+    public static final int SMITHING_SMELTING = net.runelite.api.AnimationID.SMITHING_SMELTING;
+    public static final int SMITHING_CANNONBALL = net.runelite.api.AnimationID.SMITHING_CANNONBALL;
+    public static final int SMITHING_ANVIL = net.runelite.api.AnimationID.SMITHING_ANVIL;
+    public static final int FISHING_BIG_NET = net.runelite.api.AnimationID.FISHING_BIG_NET;
+    public static final int FISHING_NET = net.runelite.api.AnimationID.FISHING_NET;
+    public static final int FISHING_POLE_CAST = net.runelite.api.AnimationID.FISHING_POLE_CAST;
+    public static final int FISHING_CAGE = net.runelite.api.AnimationID.FISHING_CAGE;
+    public static final int FISHING_HARPOON = net.runelite.api.AnimationID.FISHING_HARPOON;
+    public static final int FISHING_DRAGON_HARPOON = net.runelite.api.AnimationID.FISHING_DRAGON_HARPOON;
+    public static final int FISHING_INFERNAL_HARPOON = net.runelite.api.AnimationID.FISHING_INFERNAL_HARPOON;
+    public static final int FISHING_CRYSTAL_HARPOON = net.runelite.api.AnimationID.FISHING_CRYSTAL_HARPOON;
+    public static final int FISHING_KARAMBWAN = net.runelite.api.AnimationID.FISHING_KARAMBWAN;
+    public static final int MINING_BRONZE_PICKAXE = net.runelite.api.AnimationID.MINING_BRONZE_PICKAXE;
+    public static final int MINING_IRON_PICKAXE = net.runelite.api.AnimationID.MINING_IRON_PICKAXE;
+    public static final int MINING_STEEL_PICKAXE = net.runelite.api.AnimationID.MINING_STEEL_PICKAXE;
+    public static final int MINING_BLACK_PICKAXE = net.runelite.api.AnimationID.MINING_BLACK_PICKAXE;
+    public static final int MINING_MITHRIL_PICKAXE = net.runelite.api.AnimationID.MINING_MITHRIL_PICKAXE;
+    public static final int MINING_ADAMANT_PICKAXE = net.runelite.api.AnimationID.MINING_ADAMANT_PICKAXE;
+    public static final int MINING_RUNE_PICKAXE = net.runelite.api.AnimationID.MINING_RUNE_PICKAXE;
+    public static final int MINING_DRAGON_PICKAXE = net.runelite.api.AnimationID.MINING_DRAGON_PICKAXE;
+    public static final int MINING_INFERNAL_PICKAXE = net.runelite.api.AnimationID.MINING_INFERNAL_PICKAXE;
+    public static final int MINING_3A_PICKAXE = net.runelite.api.AnimationID.MINING_3A_PICKAXE;
+    public static final int MINING_CRYSTAL_PICKAXE = net.runelite.api.AnimationID.MINING_CRYSTAL_PICKAXE;
+    public static final int MAGIC_CHARGING_ORBS = net.runelite.api.AnimationID.MAGIC_CHARGING_ORBS;
+    public static final int MAGIC_MAKE_TABLET = net.runelite.api.AnimationID.MAGIC_MAKE_TABLET;
+    public static final int BURYING_BONES = net.runelite.api.AnimationID.BURYING_BONES;
+    public static final int USING_GILDED_ALTAR = net.runelite.api.AnimationID.USING_GILDED_ALTAR;
+    public static final int DIG = net.runelite.api.AnimationID.DIG;
+
+    private Animations() { }
+}
