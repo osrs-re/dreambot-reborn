@@ -1,6 +1,12 @@
 package com.dreambotreborn.api.compat;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+import com.dreambotreborn.api.Client;
+import com.dreambotreborn.api.Query;
+import com.dreambotreborn.api.data.ActionMode;
+import com.dreambotreborn.api.data.GameState;
 import com.dreambotreborn.api.methods.container.impl.Inventory;
 import com.dreambotreborn.api.methods.container.impl.Shop;
 import com.dreambotreborn.api.methods.container.impl.bank.Bank;
@@ -18,9 +24,64 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DreamBotCompatibilityTest
 {
+    @Test
+    void queryRemainsChainableAndIsAlsoAReadOnlyList()
+    {
+        Query<Integer> query = new Query<>(Arrays.asList(1, 2, 3));
+        List<Integer> legacyList = query;
+        assertEquals(Arrays.asList(1, 2, 3), legacyList);
+        assertEquals(2, query.filter(value -> value > 1).first());
+        assertTrue(query.exists());
+    }
+
+    @Test
+    void clientUsesDreamBotCompatibilityTypes() throws Exception
+    {
+        assertEquals(GameState.class, Client.class.getMethod("getGameState").getReturnType());
+        assertEquals(Tile.class, Client.class.getMethod("getBase").getReturnType());
+        assertEquals(Tile.class, Client.class.getMethod("getDestination").getReturnType());
+        assertEquals(GameState.ENTER_AUTH,
+            GameState.fromRuneLite(net.runelite.api.GameState.LOGIN_SCREEN_AUTHENTICATOR));
+        assertEquals(4, ActionMode.RIGHT_CLICK_FOR_CLANMATES.getVarbitValue());
+    }
+
+    @Test
+    void compatibilityFamiliesAddedByTheReferenceAuditExist() throws Exception
+    {
+        assertNotNull(Class.forName("com.dreambotreborn.api.ClientSettings"));
+        assertNotNull(Class.forName("com.dreambotreborn.api.methods.grandexchange.GrandExchange"));
+        assertNotNull(Class.forName("com.dreambotreborn.api.methods.quest.Quests"));
+        assertNotNull(Class.forName("com.dreambotreborn.api.methods.quest.book.PaidQuest"));
+        assertNotNull(Class.forName("com.dreambotreborn.api.methods.map.Map"));
+        assertNotNull(Class.forName("com.dreambotreborn.api.methods.friend.Friends"));
+        assertNotNull(Class.forName("com.dreambotreborn.api.methods.ignore.IgnoredProvider"));
+        assertNotNull(Class.forName("com.dreambotreborn.api.wrappers.map.TileReference"));
+        assertNotNull(Class.forName("com.dreambotreborn.api.wrappers.interactive.SceneObject"));
+        assertNotNull(Class.forName("com.dreambotreborn.api.wrappers.interactive.BoundaryObject"));
+        assertNotNull(Class.forName("com.dreambotreborn.api.wrappers.interactive.FloorDecoration"));
+    }
+
+    @Test
+    void localPathFinderHonorsCompatibilityBlacklist()
+    {
+        int[][] flags = new int[8][8];
+        com.dreambotreborn.api.methods.walking.pathfinding.impl.local.LocalPathFinder finder =
+            new com.dreambotreborn.api.methods.walking.pathfinding.impl.local.LocalPathFinder();
+        Tile blocked = new Tile(2, 1, 0);
+        finder.addBlacklistedTile(blocked);
+        List<Tile> path = finder.find(flags, 0, 0, 0,
+            new Tile(1, 1, 0), new Tile(4, 1, 0));
+        assertFalse(path.isEmpty());
+        assertFalse(path.contains(blocked));
+        assertTrue(finder.isBlacklisted(blocked));
+        finder.clearBlacklist();
+        assertFalse(finder.isBlacklisted(blocked));
+    }
     @Test
     void commonScriptCallsHaveSynchronousBooleanSignatures() throws Exception
     {

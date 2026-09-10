@@ -15,6 +15,8 @@ import net.runelite.api.TileObject;
 import net.runelite.api.WorldView;
 import com.dreambotreborn.api.DreamBotRebornApi;
 import com.dreambotreborn.api.Query;
+import com.dreambotreborn.api.internal.Queries;
+import com.dreambotreborn.api.methods.filter.Filter;
 import com.dreambotreborn.api.wrappers.interactive.GameObject;
 
 /** Queries scenery objects in the current top-level scene and plane. */
@@ -50,9 +52,19 @@ public final class GameObjects
     }
 
     /** DreamBot-style id filtering while retaining the chainable Query result. */
-    public static Query<GameObject> all(int... ids)
+    public static Query<GameObject> all(int[] ids)
     {
         return find(object -> matchesId(object.id, ids));
+    }
+
+    public static Query<GameObject> all(Integer... ids)
+    {
+        return all(Queries.unboxIds(ids));
+    }
+
+    public static List<GameObject> all(Filter<? super GameObject> filter)
+    {
+        return find(filter).all();
     }
 
     public static GameObject[] getObjectsOnTile(com.dreambotreborn.api.methods.map.Tile tile)
@@ -80,9 +92,26 @@ public final class GameObjects
         return closest(object -> matchesName(object.name, names));
     }
 
-    public static GameObject closest(int... ids)
+    public static GameObject closest(int[] ids)
     {
         return closest(object -> matchesId(object.id, ids));
+    }
+
+    public static GameObject closest(Integer... ids)
+    {
+        return closest(Queries.unboxIds(ids));
+    }
+
+    public static GameObject closest(Filter<? super GameObject> filter)
+    {
+        return closest((Predicate<? super GameObject>) filter);
+    }
+
+    public static GameObject closest(Filter<? super GameObject> filter,
+                                     com.dreambotreborn.api.methods.map.Tile origin)
+    {
+        return closest((Predicate<? super GameObject>) filter,
+            origin == null ? null : origin.toWorldPoint());
     }
 
     public static GameObject closest(Predicate<? super GameObject> predicate)
@@ -257,6 +286,19 @@ public final class GameObjects
             }
         }
 
-        objects.add(new GameObject(object, composition, type));
+        if (object instanceof net.runelite.api.GameObject)
+            objects.add(new com.dreambotreborn.api.wrappers.interactive.SceneObject(
+                (net.runelite.api.GameObject) object));
+        else if (object instanceof net.runelite.api.WallObject)
+            objects.add(new com.dreambotreborn.api.wrappers.interactive.BoundaryObject(
+                (net.runelite.api.WallObject) object));
+        else if (object instanceof net.runelite.api.DecorativeObject)
+            objects.add(new com.dreambotreborn.api.wrappers.interactive.WallObject(
+                (net.runelite.api.DecorativeObject) object));
+        else if (object instanceof net.runelite.api.GroundObject)
+            objects.add(new com.dreambotreborn.api.wrappers.interactive.FloorDecoration(
+                (net.runelite.api.GroundObject) object));
+        else
+            objects.add(new GameObject(object, composition, type));
     }
 }

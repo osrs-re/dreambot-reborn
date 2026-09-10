@@ -10,6 +10,7 @@ import net.runelite.api.coords.WorldPoint;
 import com.dreambotreborn.api.DreamBotRebornApi;
 import com.dreambotreborn.api.Query;
 import com.dreambotreborn.api.internal.Queries;
+import com.dreambotreborn.api.methods.filter.Filter;
 import com.dreambotreborn.api.wrappers.interactive.Player;
 
 /** DreamBot-style queries over players in the loaded scene. */
@@ -32,9 +33,19 @@ public final class Players
         return find(player -> Queries.name(player.name, names));
     }
 
-    public static Query<Player> all(int... ids)
+    public static Query<Player> all(int[] ids)
     {
         return find(player -> Queries.id(player.id, ids));
+    }
+
+    public static Query<Player> all(Integer... ids)
+    {
+        return all(Queries.unboxIds(ids));
+    }
+
+    public static List<Player> all(Filter<? super Player> filter)
+    {
+        return find(filter).all();
     }
 
     public static List<Player> all(Predicate<? super Player> predicate)
@@ -67,9 +78,26 @@ public final class Players
         return closest(player -> Queries.name(player.name, names));
     }
 
-    public static Player closest(int... ids)
+    public static Player closest(int[] ids)
     {
         return closest(player -> Queries.id(player.id, ids));
+    }
+
+    public static Player closest(Integer... ids)
+    {
+        return closest(Queries.unboxIds(ids));
+    }
+
+    public static Player closest(Filter<? super Player> filter)
+    {
+        return closest((Predicate<? super Player>) filter);
+    }
+
+    public static Player closest(Filter<? super Player> filter,
+                                 com.dreambotreborn.api.methods.map.Tile origin)
+    {
+        return closest((Predicate<? super Player>) filter,
+            origin == null ? null : origin.toWorldPoint());
     }
 
     public static Player closest(Predicate<? super Player> predicate)

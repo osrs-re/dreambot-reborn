@@ -2,7 +2,7 @@
 
 ## Source inventory
 
-The supplied `/Users/user/deob-db/client.jar` identifies itself as a DreamBot
+The locally supplied reference `client.jar` identifies itself as a DreamBot
 build in `META-INF/MANIFEST.MF`. It is a fat jar: in addition to the client it
 contains Guava, Gson, JOGL, JCEF, OkHttp, Log4j, Tink, and other dependencies.
 The relevant namespace contains 528 class files under `org/dreambot/api`, of
@@ -45,13 +45,15 @@ The original namespace is mirrored below DreamBot Reborn's own root:
   DreamBot-style synchronous operations, drop patterns, bank tabs, quantities,
   placeholders and scroll helpers. `Shop`, `DepositBox`, `Trade`, and the
   general item-container facade use the same live RuneLite state.
-- Client state: `Client`, `Skills`, `Skill`, `SkillTracker`, `Combat`, `Prayers`,
+- Client state: `Client`, `ClientSettings`, `Skills`, `Skill`, `SkillTracker`, `Combat`, `Prayers`,
   collision maps, camera state, login state, `Camera`, `PlayerSettings`, and
   `Varcs`.
 - UI and world helpers: `Widgets`, `Dialogues`, `Tabs`, `Tab`, `Worlds`, `World`,
-  `WorldHopper`, `Emotes`, live game menus, and login-screen controls.
-- Magic and prayer: the standard spellbook, spell selection/casting, prayer
-  activation/flicking, quick prayers, and their enums.
+  `WorldHopper`, `GrandExchange`, `Quests`, `FairyRings`, `Emotes`, live game
+  menus, and login-screen controls.
+- Magic and prayer: standard, Ancient, Lunar, and Arceuus spellbooks with rune
+  costs, experience and maximum-hit metadata; spell selection/casting; prayer
+  activation/flicking; quick prayers; and their enums.
 - Navigation: collision-aware local paths plus an extensible A* web graph and
   custom web nodes. Long-distance walking falls back to intermediate minimap
   destinations when no custom graph route has been registered.
@@ -59,8 +61,11 @@ The original namespace is mirrored below DreamBot Reborn's own root:
   DreamBot keyboard package facades, `Animations`, `Randoms`, composable
   `Filter<T>` implementations, `Calculations`, and immutable `Query<T>` snapshots.
 - Runtime: `AbstractScript`, `TaskScript`, `TreeScript`, manifest discovery,
-  on-canvas paints, lifecycle controls, typed listeners, priority random
+  on-canvas paints, lifecycle controls, the legacy `ScriptEvent` hierarchy and
+  typed listeners, RuneLite-to-compatibility event translation, priority random
   solvers, account-bound scheduling, and stop conditions.
+- Compatibility data: bank locations, world types and locations, varbit/varp
+  enums, quest books and composable combat/skill/quest/location requirements.
 
 The common interaction surface now follows DreamBot's immediate `boolean`
 contract. It blocks a script/background thread while the visible virtual mouse
@@ -91,16 +96,55 @@ return `false`, and asynchronous interactions resolve to `false`, when the
 target has disappeared, is off-screen, has no matching action, or the game does
 not accept the generated menu entry.
 
+## Reproducible API audit
+
+The opt-in audit compares public top-level class paths and inherited public
+method signatures without initializing or bundling the reference artifact:
+
+```shell
+mvn -Ddreambot.referenceJar=/absolute/path/to/client.jar \
+  -Dtest=LegacyApiSurfaceAuditTest test
+```
+
+At this revision it reports 283 of 449 public top-level API classes (63.0%).
+For classes present in both artifacts, 4,245 of 5,427 reference public methods
+have matching normalized signatures (78.2%). The second percentage deliberately
+does not count methods of absent classes, so both figures must be read together.
+
+## Compiled-script compatibility
+
+The external script loader accepts owned script JARs compiled against the old
+`org.dreambot.api` namespace. It rewrites class-file constant-pool references in
+memory and delegates the mapped API types to DreamBot Reborn. The input JAR is
+left byte-for-byte unchanged.
+
+Binary method descriptors are stricter than Java source compatibility. For
+example, a legacy invocation of `GameObjects.all(): java.util.List` cannot link
+directly to a method declared as `GameObjects.all(): Query`, even though `Query`
+implements `List`. The loader therefore resolves public target methods and
+adapts a descriptor only when the current parameter types accept the legacy
+arguments and the current return type is assignable to the legacy return type.
+Ambiguous or unsafe adaptations are rejected. Common boxed `Integer[]` entity
+and container ID overloads are exposed explicitly because they cannot be
+safely changed into primitive `int[]` values by descriptor rewriting alone.
+
+`LegacyScriptLoaderTest` builds an untouched legacy fixture JAR and verifies
+annotations, inheritance, lambdas, filters, boxed IDs, collection returns,
+failure diagnostics, and input-JAR immutability. With
+`-Ddreambot.referenceJar=...`, it also compiles and runs a fixture against the
+locally owned historical artifact.
+
 ## Intentional remaining boundary
 
-The supplied jar exposes 452 top-level API classes; DreamBot Reborn currently mirrors 179
-of those exact relative class paths and also has DreamBot Reborn-specific runtime/UI
-classes. Class count is not treated as completion: empty signature stubs would
-compile while behaving incorrectly. The remaining bulk consists mostly of
-DreamBot's proprietary world-web/transport data, quest and achievement-diary
-datasets, client-internal cache nodes, JCEF/SDN/license services, and duplicate
-low-level AWT event classes. DreamBot Reborn's functional web is intentionally
-extensible, but it does not pretend to contain DreamBot's private graph.
+The supplied jar exposes 452 top-level API class files, 449 of which are public.
+DreamBot Reborn also has project-specific runtime and UI classes. Class count is
+not treated as completion: empty signature stubs would compile while behaving
+incorrectly. The remaining bulk consists mostly of DreamBot's proprietary
+world-web/transport graph, achievement-diary datasets, client-internal cache and
+model wrappers, obsolete social/forum facilities, specialized random solvers,
+and duplicate low-level AWT event machinery. DreamBot Reborn's functional web
+is intentionally extensible, but it does not pretend to contain DreamBot's
+private graph.
 
 The supplied jar is used only to inventory public names and signatures. It is
 never loaded, decompiled into DreamBot Reborn, or redistributed. New compatibility

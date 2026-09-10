@@ -4,13 +4,24 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
+import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import com.dreambotreborn.api.methods.map.Tile;
+import com.dreambotreborn.api.methods.walking.path.impl.LocalPath;
 import com.dreambotreborn.api.methods.walking.pathfinding.data.TileFlags;
 import com.dreambotreborn.api.methods.walking.pathfinding.impl.node.PathNode;
+import com.dreambotreborn.api.methods.walking.pathfinding.impl.obstacle.PathObstacle;
+import com.dreambotreborn.api.utilities.impl.Condition;
 
 /** Collision-aware A* over one loaded RuneScape scene. */
 public final class LocalPathFinder
 {
+    private static final LocalPathFinder INSTANCE = new LocalPathFinder();
+    private static volatile List<PathNode> lastOpen = Collections.emptyList();
+    private static volatile List<PathNode> lastClosed = Collections.emptyList();
     private static final int[][] DIRECTIONS =
     {
         {-1, -1}, {0, -1}, {1, -1},
@@ -19,6 +30,11 @@ public final class LocalPathFinder
     };
 
     private final Heuristic heuristic;
+    private final Set<Tile> blacklistedTiles = Collections.synchronizedSet(new LinkedHashSet<>());
+    private final Set<Tile> webOnlyTiles = Collections.synchronizedSet(new LinkedHashSet<>());
+    private final Map<Tile, Condition> tileConditions = Collections.synchronizedMap(new LinkedHashMap<>());
+    private final List<PathObstacle> obstacles = new CopyOnWriteArrayList<>();
+    private volatile int currentDepth;
 
     public LocalPathFinder()
     {
@@ -28,6 +44,74 @@ public final class LocalPathFinder
     public LocalPathFinder(Heuristic heuristic)
     {
         this.heuristic = heuristic == null ? new AbsoluteHeuristic() : heuristic;
+    }
+
+    public static LocalPathFinder getLocalPathFinder() { return INSTANCE; }
+    public static List<PathNode> getOpen() { return lastOpen; }
+    public static List<PathNode> getClosed() { return lastClosed; }
+    public void addBlacklistedTile(Tile tile) { if (tile != null) blacklistedTiles.add(tile); }
+    public void removeBlacklistedTile(Tile tile) { blacklistedTiles.remove(tile); }
+    public boolean isBlacklisted(Tile tile) { return tile != null && blacklistedTiles.contains(tile); }
+    public void clearBlacklist() { blacklistedTiles.clear(); }
+    public Set<Tile> getBlacklistedTiles()
+    {
+        synchronized (blacklistedTiles)
+        { return Collections.unmodifiableSet(new LinkedHashSet<>(blacklistedTiles)); }
+    }
+    public void addWebOnlyObstacleTile(Tile tile) { if (tile != null) webOnlyTiles.add(tile); }
+    public void removeWebOnlyObstacleTile(Tile tile) { webOnlyTiles.remove(tile); }
+    public boolean isTileWebOnly(Tile tile) { return tile != null && webOnlyTiles.contains(tile); }
+    public void addTileCondition(Tile tile, Condition condition)
+    { if (tile != null && condition != null) tileConditions.put(tile, condition); }
+    public void removeTileCondition(Tile tile) { tileConditions.remove(tile); }
+    public void clearTileConditions() { tileConditions.clear(); }
+    public boolean checkTileCondition(Tile tile)
+    {
+        Condition condition = tileConditions.get(tile);
+        return condition == null || condition.verify();
+    }
+    public void addObstacle(PathObstacle obstacle) { if (obstacle != null) obstacles.add(obstacle); }
+    public void removeObstacle(PathObstacle obstacle) { obstacles.remove(obstacle); }
+    public int getCurrentDepth() { return currentDepth; }
+    public void setCurrentDepth(int value) { currentDepth = Math.max(0, value); }
+    public float getHeuristicCost(int x, int y, int targetX, int targetY)
+    { return (float) heuristic.calculate(x, y, targetX, targetY); }
+    public float getHeuristicCost(int x, int y, int z, int targetX, int targetY, int targetZ)
+    { return z == targetZ ? getHeuristicCost(x, y, targetX, targetY) : Float.POSITIVE_INFINITY; }
+    public LocalPath<Tile> calculate(Tile start, Tile destination)
+    {
+        if (start == null || destination == null) return new LocalPath<>(Collections.emptyList());
+        net.runelite.api.CollisionData[] maps =
+            com.dreambotreborn.api.DreamBotRebornApi.requireClient().getCollisionMaps();
+        int plane = start.getZ();
+        if (maps == null || plane < 0 || plane >= maps.length || maps[plane] == null)
+            return new LocalPath<>(Collections.emptyList());
+        return new LocalPath<>(find(maps[plane].getFlags(),
+            com.dreambotreborn.api.DreamBotRebornApi.requireClient().getBaseX(),
+            com.dreambotreborn.api.DreamBotRebornApi.requireClient().getBaseY(), plane,
+            start, destination));
+    }
+    public LocalPath<Tile> calculate(int startX, int startY, int endX, int endY)
+    {
+        int plane = com.dreambotreborn.api.DreamBotRebornApi.requireClient().getPlane();
+        return calculate(startX, startY, plane, endX, endY, plane);
+    }
+    public LocalPath<Tile> calculate(int startX, int startY, int endX, int endY, int plane)
+    { return calculate(startX, startY, plane, endX, endY, plane); }
+    public LocalPath<Tile> calculate(int startX, int startY, int startZ,
+                                     int endX, int endY, int endZ)
+    {
+        return calculate(new Tile(startX, startY, startZ), new Tile(endX, endY, endZ));
+    }
+    public double getWalkingDistance(Tile start, Tile destination)
+    {
+        LocalPath<Tile> path = calculate(start, destination);
+        return path.isEmpty() ? Double.POSITIVE_INFINITY : Math.max(0, path.size() - 1);
+    }
+    public void onWebNodeVersionUpdate() { webOnlyTiles.clear(); }
+    public void reset()
+    {
+        clearBlacklist(); clearTileConditions(); webOnlyTiles.clear(); obstacles.clear(); currentDepth = 0;
     }
 
     public List<Tile> find(
@@ -57,9 +141,13 @@ public final class LocalPathFinder
             closed[x] = new boolean[height];
         }
         PriorityQueue<PathNode> open = new PriorityQueue<>();
+        List<PathNode> opened = new ArrayList<>();
+        List<PathNode> closedNodes = new ArrayList<>();
         costs[startX][startY] = 0.0;
-        open.add(new PathNode(startX, startY, 0.0,
-            heuristic.calculate(startX, startY, targetX, targetY), null));
+        PathNode startNode = new PathNode(startX, startY, 0.0,
+            heuristic.calculate(startX, startY, targetX, targetY), null);
+        open.add(startNode);
+        opened.add(startNode);
 
         int expanded = 0;
         int maximum = Math.max(4096, flags.length * 128);
@@ -68,15 +156,22 @@ public final class LocalPathFinder
             PathNode current = open.poll();
             if (closed[current.sceneX][current.sceneY]) continue;
             closed[current.sceneX][current.sceneY] = true;
+            closedNodes.add(current);
+            currentDepth = Math.max(currentDepth, (int) Math.ceil(current.cost));
             if (current.sceneX == targetX && current.sceneY == targetY)
             {
+                lastOpen = Collections.unmodifiableList(new ArrayList<>(opened));
+                lastClosed = Collections.unmodifiableList(new ArrayList<>(closedNodes));
                 return build(current, baseX, baseY, plane);
             }
             for (int[] direction : DIRECTIONS)
             {
                 int nextX = current.sceneX + direction[0];
                 int nextY = current.sceneY + direction[1];
+                Tile nextTile = new Tile(baseX + nextX, baseY + nextY, plane);
                 if (!inside(flags, nextX, nextY) || closed[nextX][nextY]
+                    || isBlacklisted(nextTile) || isTileWebOnly(nextTile)
+                    || !checkTileCondition(nextTile)
                     || !canMove(flags, current.sceneX, current.sceneY, direction[0], direction[1]))
                 {
                     continue;
@@ -86,9 +181,13 @@ public final class LocalPathFinder
                 if (cost >= costs[nextX][nextY]) continue;
                 costs[nextX][nextY] = cost;
                 double score = cost + heuristic.calculate(nextX, nextY, targetX, targetY);
-                open.add(new PathNode(nextX, nextY, cost, score, current));
+                PathNode next = new PathNode(nextX, nextY, cost, score, current);
+                open.add(next);
+                opened.add(next);
             }
         }
+        lastOpen = Collections.unmodifiableList(new ArrayList<>(opened));
+        lastClosed = Collections.unmodifiableList(new ArrayList<>(closedNodes));
         return Collections.emptyList();
     }
 

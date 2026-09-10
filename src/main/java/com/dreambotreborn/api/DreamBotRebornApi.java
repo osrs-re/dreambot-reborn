@@ -59,6 +59,7 @@ public final class DreamBotRebornApi
         Widgets.clear();
         Skills.clear();
         Worlds.clearWorlds();
+        com.dreambotreborn.api.script.ScriptEventBus.getInstance().resetClientState();
     }
 
     /** Returns the underlying client for functionality not yet wrapped by this API. */

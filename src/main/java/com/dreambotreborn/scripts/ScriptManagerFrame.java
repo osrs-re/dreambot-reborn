@@ -488,12 +488,19 @@ public final class ScriptManagerFrame
         details.setText("<html><body style='font-family:sans-serif;color:#e8e8e8;background:#1f1f1f'>"
             + "<h2 style='margin-bottom:3px'>" + html(manifest.name()) + "</h2>"
             + "<div style='color:#9ba0a9'>Version " + manifest.version() + " &nbsp;•&nbsp; "
-            + html(manifest.category().name()) + "</div>"
+            + html(manifest.category().name())
+            + (selected.isLegacy() ? " &nbsp;•&nbsp; <span style='color:#e6a94a'>Legacy JAR</span>" : "")
+            + "</div>"
             + "<p>" + html(manifest.description()).replace("\n", "<br>") + "</p>"
             + "<p><b>Author</b><br>" + html(manifest.author()) + "</p>"
             + "<p><b>Class</b><br><code>" + html(selected.getClassName()) + "</code></p>"
             + "<p><b>Source</b><br><code>" + html(source == null ? "application" : source.toString())
-            + "</code></p></body></html>");
+            + "</code></p>"
+            + (selected.isLegacy()
+                ? "<p style='color:#c8a96a'><b>Compatibility mode</b><br>"
+                    + "org.dreambot.api references are remapped in memory. The original JAR is unchanged.</p>"
+                : "")
+            + "</body></html>");
         details.setCaretPosition(0);
     }
 
@@ -549,7 +556,8 @@ public final class ScriptManagerFrame
             ScriptManifest manifest = descriptor.getManifest();
             label.setText("<html><b>" + html(manifest.name()) + "</b><br>"
                 + "<span style='color:" + (selected ? "#ffffff" : "#9ba0a9") + "'>"
-                + html(manifest.author()) + " • v" + manifest.version() + "</span></html>");
+                + html(manifest.author()) + " • v" + manifest.version()
+                + (descriptor.isLegacy() ? " • Legacy" : "") + "</span></html>");
             label.setBorder(BorderFactory.createEmptyBorder(5, 9, 5, 9));
             return label;
         }

@@ -38,10 +38,10 @@ public enum Normal implements Spell
     public int getChild() { return child; }
     public int getParent() { return PARENT; }
     public int getAutocastId() { return ordinal(); }
-    public Rune[] getCost() { return new Rune[0]; }
+    public Rune[] getCost() { return SpellData.normal(this); }
     public int getLevel() { return level; }
-    public int getMaxHit() { return 0; }
-    public double getExperience() { return 0.0; }
+    public int getMaxHit() { return SpellData.normalMaxHit(this); }
+    public double getExperience() { return SpellData.normalExperience(this); }
     @Override public String toString()
     {
         String value = name().replace('_', ' ').toLowerCase(Locale.ENGLISH);

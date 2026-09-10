@@ -2,7 +2,7 @@ package com.dreambotreborn.api;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.AbstractList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Comparator;
@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 import com.dreambotreborn.api.wrappers.interactive.Entity;
 
 /** An immutable snapshot of query results. */
-public final class Query<T> implements Iterable<T>
+public final class Query<T> extends AbstractList<T>
 {
     private final List<T> results;
 
@@ -118,19 +118,20 @@ public final class Query<T> implements Iterable<T>
         return results.size();
     }
 
-    public boolean isEmpty()
-    {
-        return results.isEmpty();
-    }
-
     public Stream<T> stream()
     {
         return results.stream();
     }
 
     @Override
-    public Iterator<T> iterator()
+    public T get(int index)
     {
-        return results.iterator();
+        return results.get(index);
+    }
+
+    @Override
+    public int size()
+    {
+        return results.size();
     }
 }

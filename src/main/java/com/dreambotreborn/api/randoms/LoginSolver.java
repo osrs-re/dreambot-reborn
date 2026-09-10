@@ -3,7 +3,7 @@ package com.dreambotreborn.api.randoms;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import com.dreambotreborn.api.Client;
-import net.runelite.api.GameState;
+import com.dreambotreborn.api.data.GameState;
 
 /** Restarts the selected account's login flow if a running script is logged out. */
 public class LoginSolver extends RandomSolver

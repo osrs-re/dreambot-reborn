@@ -89,6 +89,21 @@ public final class Equipment
         return ContainerQueries.get(TYPE, Objects.requireNonNull(predicate, "predicate"));
     }
 
+    public static Item get(int[] ids)
+    {
+        return get(item -> Queries.id(item.id, ids));
+    }
+
+    public static Item get(Integer... ids)
+    {
+        return get(Queries.unboxIds(ids));
+    }
+
+    public static Item get(String... names)
+    {
+        return get(item -> Queries.name(item.name, names));
+    }
+
     public static boolean contains(int id)
     {
         return get(id) != null;
@@ -97,6 +112,28 @@ public final class Equipment
     public static boolean contains(String name)
     {
         return get(name) != null;
+    }
+
+    public static boolean contains(int[] ids)
+    {
+        return get(ids) != null;
+    }
+
+    public static boolean contains(Integer... ids)
+    {
+        return contains(Queries.unboxIds(ids));
+    }
+
+    public static boolean contains(String... names)
+    {
+        return get(names) != null;
+    }
+
+    public static boolean contains(Object value)
+    {
+        if (value instanceof Item) return contains(((Item) value).id);
+        if (value instanceof Number) return contains(((Number) value).intValue());
+        return value instanceof String && contains((String) value);
     }
 
     public static boolean contains(Predicate<? super Item> predicate)
@@ -279,9 +316,14 @@ public final class Equipment
         return ContainerQueries.onlyContains(TYPE, item -> Queries.name(item.name, names));
     }
 
-    public static boolean onlyContains(int... ids)
+    public static boolean onlyContains(int[] ids)
     {
         return ContainerQueries.onlyContains(TYPE, item -> Queries.id(item.id, ids));
+    }
+
+    public static boolean onlyContains(Integer... ids)
+    {
+        return onlyContains(Queries.unboxIds(ids));
     }
 
     public static boolean onlyContains(Predicate<? super Item> predicate)

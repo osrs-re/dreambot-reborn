@@ -57,7 +57,7 @@ final class ScriptLoader
                 {
                     urls[index] = jars.get(index).toUri().toURL();
                 }
-                URLClassLoader loader = new URLClassLoader(urls, applicationLoader);
+                URLClassLoader loader = new LegacyScriptClassLoader(urls, applicationLoader);
                 classLoaders.add(loader);
                 for (Path jar : jars)
                 {
@@ -178,6 +178,13 @@ final class ScriptLoader
                 {
                     continue;
                 }
+                // A script JAR may accidentally bundle the old or current API.
+                // Those definitions must never shadow the application's API.
+                if (external && (name.startsWith("org/dreambot/api/")
+                    || name.startsWith("com/dreambotreborn/api/")))
+                {
+                    continue;
+                }
                 if (!external && !name.startsWith(PACKAGE_PATH + "/"))
                 {
                     continue;
@@ -222,7 +229,9 @@ final class ScriptLoader
             candidate.getDeclaredConstructor();
             seen.add(className);
             scripts.add(new ScriptDescriptor(
-                (Class<? extends AbstractScript>) candidate, manifest, source));
+                (Class<? extends AbstractScript>) candidate, manifest, source,
+                loader instanceof LegacyScriptClassLoader
+                    && ((LegacyScriptClassLoader) loader).isLegacyClass(className)));
         }
         catch (ReflectiveOperationException | LinkageError | SecurityException ex)
         {

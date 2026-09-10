@@ -123,9 +123,10 @@ public final class ScriptManager
             }
             script = constructor.newInstance();
         }
-        catch (ReflectiveOperationException | SecurityException ex)
+        catch (ReflectiveOperationException | SecurityException | LinkageError ex)
         {
-            throw new IllegalArgumentException("Cannot create script " + scriptClass.getName(), ex);
+            throw new IllegalArgumentException("Cannot create script " + scriptClass.getName(),
+                compatibilityFailure(scriptClass, ex));
         }
 
         currentArguments = arguments == null ? new String[0] : arguments.clone();
@@ -193,7 +194,7 @@ public final class ScriptManager
         {
             if (!(ex instanceof InterruptedException) || state != State.STOP)
             {
-                recordFailure("Script failed", ex);
+                recordFailure("Script failed", compatibilityFailure(script.getClass(), ex));
             }
         }
         finally
@@ -205,7 +206,7 @@ public final class ScriptManager
             }
             catch (Throwable ex)
             {
-                recordFailure("Script onExit failed", ex);
+                recordFailure("Script onExit failed", compatibilityFailure(script.getClass(), ex));
             }
             synchronized (lifecycleLock)
             {
@@ -313,7 +314,8 @@ public final class ScriptManager
         }
         catch (Throwable ex)
         {
-            recordFailure("Script onScheduledStop failed", ex);
+            recordFailure("Script onScheduledStop failed",
+                compatibilityFailure(script.getClass(), ex));
             return false;
         }
     }
@@ -421,10 +423,32 @@ public final class ScriptManager
         return paintError == null ? lastError : paintError;
     }
 
+    public boolean isLegacyScript(Class<?> scriptClass)
+    {
+        return scriptClass != null && scriptClass.getClassLoader() instanceof LegacyScriptClassLoader
+            && ((LegacyScriptClassLoader) scriptClass.getClassLoader()).isLegacyClass(scriptClass.getName());
+    }
+
     /** Called by the event bus without allowing a faulty listener to stop client callbacks. */
     public void reportEventFailure(EventListener listener, Throwable error)
     {
-        recordFailure("Event listener failed: " + listener.getClass().getName(), error);
+        recordFailure("Event listener failed: " + listener.getClass().getName(),
+            compatibilityFailure(listener.getClass(), error));
+    }
+
+    static Throwable compatibilityFailure(Class<?> scriptClass, Throwable error)
+    {
+        if (scriptClass == null || !(scriptClass.getClassLoader() instanceof LegacyScriptClassLoader))
+            return error;
+        Throwable linkage = error;
+        while (linkage != null && !(linkage instanceof LinkageError)) linkage = linkage.getCause();
+        if (linkage == null) return error;
+        String detail = linkage.getMessage();
+        if (detail == null || detail.trim().isEmpty()) detail = linkage.getClass().getSimpleName();
+        detail = detail.replace('/', '.');
+        return new LegacyScriptCompatibilityException(
+            "Legacy script needs an API method, class, or dependency that is not compatible yet: "
+                + detail, error);
     }
 
     /** Paints the active script into the game's main image buffer. */
@@ -445,9 +469,10 @@ public final class ScriptManager
         {
             if (lastPaintError == null)
             {
-                lastPaintError = ex;
-                System.err.println("Script onPaint failed: " + ex.getMessage());
-                ex.printStackTrace(System.err);
+                Throwable failure = compatibilityFailure(script.getClass(), ex);
+                lastPaintError = failure;
+                System.err.println("Script onPaint failed: " + failure.getMessage());
+                failure.printStackTrace(System.err);
             }
         }
         finally

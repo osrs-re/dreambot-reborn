@@ -17,6 +17,7 @@ import net.runelite.api.coords.WorldPoint;
 import com.dreambotreborn.api.DreamBotRebornApi;
 import com.dreambotreborn.api.Query;
 import com.dreambotreborn.api.internal.Queries;
+import com.dreambotreborn.api.methods.filter.Filter;
 import com.dreambotreborn.api.methods.interactive.Players;
 import com.dreambotreborn.api.wrappers.interactive.Player;
 import com.dreambotreborn.api.wrappers.items.GroundItem;
@@ -40,9 +41,19 @@ public final class GroundItems
         return find(item -> Queries.name(item.name, names));
     }
 
-    public static Query<GroundItem> all(int... ids)
+    public static Query<GroundItem> all(int[] ids)
     {
         return find(item -> Queries.id(item.id, ids));
+    }
+
+    public static Query<GroundItem> all(Integer... ids)
+    {
+        return all(Queries.unboxIds(ids));
+    }
+
+    public static List<GroundItem> all(Filter<? super GroundItem> filter)
+    {
+        return find(filter).all();
     }
 
     public static Query<GroundItem> find(Predicate<? super GroundItem> predicate)
@@ -65,9 +76,26 @@ public final class GroundItems
         return closest(item -> Queries.name(item.name, names));
     }
 
-    public static GroundItem closest(int... ids)
+    public static GroundItem closest(int[] ids)
     {
         return closest(item -> Queries.id(item.id, ids));
+    }
+
+    public static GroundItem closest(Integer... ids)
+    {
+        return closest(Queries.unboxIds(ids));
+    }
+
+    public static GroundItem closest(Filter<? super GroundItem> filter)
+    {
+        return closest((Predicate<? super GroundItem>) filter);
+    }
+
+    public static GroundItem closest(Filter<? super GroundItem> filter,
+                                     com.dreambotreborn.api.methods.map.Tile origin)
+    {
+        return closest((Predicate<? super GroundItem>) filter,
+            origin == null ? null : origin.toWorldPoint());
     }
 
     public static GroundItem closest(Predicate<? super GroundItem> predicate)

@@ -6,11 +6,12 @@ import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import net.runelite.api.GameState;
 import net.runelite.api.WorldType;
 import net.runelite.api.vars.AccountType;
 import net.runelite.api.coords.WorldPoint;
 import com.dreambotreborn.api.methods.walking.impl.Walking;
+import com.dreambotreborn.api.data.GameState;
+import com.dreambotreborn.api.methods.map.Tile;
 
 /** Frequently used client state with DreamBot-style static access. */
 public final class Client
@@ -29,13 +30,19 @@ public final class Client
 
     public static GameState getGameState()
     {
+        return GameState.fromRuneLite(getRuneLiteGameState());
+    }
+
+    /** Access to the raw RuneLite state for integrations that need it. */
+    public static net.runelite.api.GameState getRuneLiteGameState()
+    {
         return DreamBotRebornApi.requireClient().getGameState();
     }
 
     public static int getGameStateId()
     {
         GameState state = getGameState();
-        return state == null ? -1 : state.getState();
+        return state == null ? -1 : state.getId();
     }
 
     public static int getGameStateID()
@@ -103,9 +110,9 @@ public final class Client
         return DreamBotRebornApi.requireClient().getBaseY();
     }
 
-    public static WorldPoint getBase()
+    public static Tile getBase()
     {
-        return new WorldPoint(getBaseX(), getBaseY(), getPlane());
+        return new Tile(getBaseX(), getBaseY(), getPlane());
     }
 
     public static int getMapAngle() { return DreamBotRebornApi.requireClient().getCameraYawTarget(); }
@@ -161,20 +168,21 @@ public final class Client
         return DreamBotRebornApi.requireClient().getViewportHeight();
     }
 
-    public static WorldPoint getDestination()
+    public static Tile getDestination()
     {
-        return Walking.getDestination();
+        WorldPoint destination = Walking.getDestination();
+        return destination == null ? null : new Tile(destination);
     }
 
     public static int getDestX()
     {
-        WorldPoint destination = getDestination();
+        Tile destination = getDestination();
         return destination == null ? -1 : destination.getX();
     }
 
     public static int getDestY()
     {
-        WorldPoint destination = getDestination();
+        Tile destination = getDestination();
         return destination == null ? -1 : destination.getY();
     }
 

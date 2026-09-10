@@ -56,7 +56,7 @@ This repository does not contain the proprietary game client. At startup it read
 
 ## Reverse-engineering mission
 
-The supplied legacy JAR identifies itself as a DreamBot build in its manifest. It is a fat Java archive containing application classes plus third-party dependencies. The relevant `org.dreambot.api` namespace contains **528 class files** and **452 top-level classes**. DreamBot Reborn currently contains **198 API source units**, including **179 matching relative class paths** beneath its own `com.dreambotreborn.api` namespace.
+The supplied legacy JAR identifies itself as a DreamBot build in its manifest. It is a fat Java archive containing application classes plus third-party dependencies. The relevant `org.dreambot.api` namespace contains **528 class files** and **452 top-level classes**. DreamBot Reborn currently contains **308 API source units**, including **284 matching relative class paths** beneath its own `com.dreambotreborn.api` namespace. The opt-in reflection audit can currently load **283 of 449 public top-level legacy API classes**.
 
 Those numbers are a navigation aid, not a claim of perfect compatibility. A generated empty class can improve a parity percentage without recovering any useful behavior. The project therefore prioritizes observable contracts:
 
@@ -164,7 +164,7 @@ Do not commit the reference JAR or bulk decompiler output. Record only the compa
 |---|---|
 | Reverse engineering | Legacy JAR inventory, manifest inspection, `javap` signature extraction, targeted bytecode analysis, package mapping, and behavior recovery |
 | Agent-assisted recovery | Parallel inventory, signature, behavior, mapping, implementation, verification, and documentation roles with evidence-based handoffs |
-| API reconstruction | 179 matching relative API class paths plus independent compatibility and client-support classes under `com.dreambotreborn.api` |
+| API reconstruction | 284 matching relative API class paths plus independent compatibility and client-support classes under `com.dreambotreborn.api` |
 | OSRS client | Current injected Old School RuneScape client hosted in a Java Swing `JFrame` |
 | DreamBot-style API | Static methods, immutable wrappers, predicates, filters, queries, entity interaction, containers, skills, worlds, widgets, magic, prayer, trade, shops, and banking |
 | Script runtime | `AbstractScript`, `@ScriptManifest`, lifecycle callbacks, pause, resume, stop, skip, runtime timer, arguments, and one active script at a time |
@@ -438,6 +438,41 @@ The virtual keyboard supports configurable words per minute, key holds, Shift, C
 
 Physical mouse input can be disabled from the bottom toolbar. Starting an account-bound script disables physical OSRS canvas input automatically, while `VirtualMouse` and scripted keyboard input continue working. Moving the physical mouse updates the shared crosshair whenever physical input is enabled.
 
+## Legacy DreamBot script compatibility
+
+Existing compiled scripts that still reference `org.dreambot.api` can be loaded directly. Put the
+original script JAR in `~/.dreambot-reborn/scripts/` and press **Refresh**. DreamBot Reborn detects
+the old namespace and marks the entry as **Legacy** in the Script Manager.
+
+Compatibility happens entirely in memory:
+
+- classes, descriptors, annotations, generic signatures, lambdas, and method references are
+  remapped from `org.dreambot.api` to `com.dreambotreborn.api` as each script class is loaded;
+- compatible binary descriptor changes are adapted, including legacy collection-returning calls
+  such as `GameObjects.all(): List` targeting the current `GameObjects.all(): Query`;
+- API classes accidentally bundled in a fat script JAR are ignored, so they cannot shadow the
+  client API;
+- support JARs placed in the same scripts directory share the external-script class path;
+- the source JAR is never unpacked, patched, or overwritten.
+
+The compatibility layer preserves script bytecode and execution logic; it cannot invent an API
+that has not been reconstructed yet. A legacy script that reaches a missing class or incompatible
+method stops with a `LegacyScriptCompatibilityException` identifying the unresolved symbol. Native
+code, private client internals, third-party libraries absent from the scripts directory, and APIs
+whose argument or behavior contract cannot safely be adapted still require a source-level port.
+
+This feature is meant for legally obtained scripts you own or are permitted to run. The historical
+reference client JAR itself is neither loaded nor distributed.
+
+Maintainers with a locally owned reference artifact can run the optional end-to-end compatibility
+fixture. It compiles a fresh script against that JAR, loads the untouched result through DreamBot
+Reborn, and exercises boxed-ID and filter calls:
+
+```shell
+mvn -Ddreambot.referenceJar=/absolute/path/to/client.jar \
+  -Dtest=LegacyScriptLoaderTest test
+```
+
 ## Script Manager and scheduling
 
 The bottom script button opens a dedicated Script Manager `JFrame`. It discovers bundled scripts and external script JARs from:
@@ -582,6 +617,16 @@ Build and test the executable package:
 mvn clean test package
 ```
 
+Run the optional structural comparison against a locally owned reference JAR:
+
+```shell
+mvn -Ddreambot.referenceJar=/absolute/path/to/client.jar \
+  -Dtest=LegacyApiSurfaceAuditTest test
+```
+
+The reference JAR is read only for class and public-signature inventory. It is
+not copied, initialized, packaged, or required at runtime.
+
 The tests cover account persistence and login state, settings, filters, DreamBot API compatibility, virtual mouse behavior, local and web pathfinding, script lifecycle, `TaskScript`, and `TreeScript` semantics. Reverse-engineered rules such as priority ordering, negative loop termination, fallback delays, selection behavior, and synchronous interaction results should always receive focused regression tests.
 
 Compatibility is checked at three different levels:
@@ -621,8 +666,13 @@ Confirm that:
 - the concrete class has `@ScriptManifest`;
 - the class is not abstract;
 - it has a no-argument constructor;
-- it was compiled against the matching `com.dreambotreborn.api` version;
+- it was compiled against the matching `com.dreambotreborn.api` version, or against the supported
+  public `org.dreambot.api` surface and appears with a **Legacy** badge;
 - **Refresh** was pressed after copying the JAR.
+
+Open the Script Manager status area when a legacy script is rejected. Missing reconstructed APIs
+are reported as compatibility errors; missing non-DreamBot dependencies should be placed in the
+same scripts directory as separate JARs or bundled with the script.
 
 ### Client breaks after an OSRS update
 

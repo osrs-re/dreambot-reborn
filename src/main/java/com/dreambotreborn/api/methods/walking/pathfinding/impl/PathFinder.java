@@ -13,7 +13,7 @@ import net.runelite.api.CollisionData;
 /** Entry point for collision-safe paths inside the currently loaded scene. */
 public final class PathFinder
 {
-    private static final LocalPathFinder LOCAL = new LocalPathFinder();
+    private static final LocalPathFinder LOCAL = LocalPathFinder.getLocalPathFinder();
 
     private PathFinder()
     {
@@ -37,5 +37,10 @@ public final class PathFinder
         List<Tile> tiles = LOCAL.find(flags, DreamBotRebornApi.requireClient().getBaseX(),
             DreamBotRebornApi.requireClient().getBaseY(), plane, start, destination);
         return new LocalPath(tiles);
+    }
+
+    public static LocalPath findNow(Tile start, Tile destination)
+    {
+        return LocalPathFinder.getLocalPathFinder().calculate(start, destination);
     }
 }

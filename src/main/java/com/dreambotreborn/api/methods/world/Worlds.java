@@ -53,6 +53,11 @@ public final class Worlds
         return all(World::isHighRisk);
     }
 
+    public static Query<World> noMinimumLevel()
+    {
+        return all(world -> world.getMinimumLevel() == 0);
+    }
+
     public static World getWorld(int id)
     {
         return all(world -> world.id == id).first();
@@ -71,6 +76,38 @@ public final class Worlds
     public static World getRandomWorld(Predicate<? super World> predicate)
     {
         return all(predicate).random();
+    }
+
+    public static World getRandomWorld(List<World> worlds)
+    {
+        if (worlds == null || worlds.isEmpty()) return null;
+        return worlds.get(ThreadLocalRandom.current().nextInt(worlds.size()));
+    }
+
+    public static List<World> getNormalizedWorlds()
+    {
+        return all(world -> world.population >= 0 && !world.isSuspicious()).all();
+    }
+
+    public static void updatePing(World world)
+    {
+        if (world == null || world.host == null || world.host.isEmpty()) return;
+        long started = System.nanoTime();
+        try
+        {
+            java.net.InetAddress.getByName(world.host).isReachable(1_000);
+            world.setPing((int) Math.min(Integer.MAX_VALUE,
+                (System.nanoTime() - started) / 1_000_000L));
+        }
+        catch (java.io.IOException ignored)
+        {
+            world.setPing(-1);
+        }
+    }
+
+    public static Location getExactLocation(World world)
+    {
+        return world == null ? null : world.getExactLocation();
     }
 
     public static World getCurrent()

@@ -1,7 +1,7 @@
 package com.dreambotreborn.api.methods.login;
 
 import com.dreambotreborn.api.Client;
-import net.runelite.api.GameState;
+import com.dreambotreborn.api.data.GameState;
 
 public enum LoginStage
 {
@@ -12,7 +12,7 @@ public enum LoginStage
 
     public static LoginStage getStage(int index)
     {
-        if (Client.getGameState() == GameState.LOGIN_SCREEN_AUTHENTICATOR) return AUTH;
+        if (Client.getGameState() == GameState.ENTER_AUTH) return AUTH;
         switch (index)
         {
             case 0: return LOGIN_SCREEN;

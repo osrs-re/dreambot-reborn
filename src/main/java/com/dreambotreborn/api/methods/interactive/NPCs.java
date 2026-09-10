@@ -11,6 +11,7 @@ import net.runelite.api.coords.WorldPoint;
 import com.dreambotreborn.api.DreamBotRebornApi;
 import com.dreambotreborn.api.Query;
 import com.dreambotreborn.api.internal.Queries;
+import com.dreambotreborn.api.methods.filter.Filter;
 import com.dreambotreborn.api.wrappers.interactive.NPC;
 import com.dreambotreborn.api.wrappers.interactive.Player;
 
@@ -33,9 +34,19 @@ public final class NPCs
         return find(npc -> Queries.name(npc.name, names));
     }
 
-    public static Query<NPC> all(int... ids)
+    public static Query<NPC> all(int[] ids)
     {
         return find(npc -> Queries.id(npc.id, ids));
+    }
+
+    public static Query<NPC> all(Integer... ids)
+    {
+        return all(Queries.unboxIds(ids));
+    }
+
+    public static List<NPC> all(Filter<? super NPC> filter)
+    {
+        return find(filter).all();
     }
 
     public static List<NPC> all(Predicate<? super NPC> predicate)
@@ -63,9 +74,33 @@ public final class NPCs
         return closest(npc -> Queries.name(npc.name, names));
     }
 
-    public static NPC closest(int... ids)
+    public static NPC closest(int[] ids)
     {
         return closest(npc -> Queries.id(npc.id, ids));
+    }
+
+    public static NPC closest(Integer... ids)
+    {
+        return closest(Queries.unboxIds(ids));
+    }
+
+    public static NPC closest(Filter<? super NPC> filter)
+    {
+        return closest((Predicate<? super NPC>) filter);
+    }
+
+    public static NPC closest(Filter<? super NPC> filter,
+                              com.dreambotreborn.api.methods.map.Tile origin)
+    {
+        return closest((Predicate<? super NPC>) filter,
+            origin == null ? null : origin.toWorldPoint());
+    }
+
+    public static NPC closest(Filter<? super NPC> filter,
+                              com.dreambotreborn.api.methods.map.Tile origin,
+                              boolean ignoredReachability)
+    {
+        return closest(filter, origin);
     }
 
     public static NPC closest(Predicate<? super NPC> predicate)

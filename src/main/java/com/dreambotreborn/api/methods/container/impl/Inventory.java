@@ -111,9 +111,14 @@ public final class Inventory
         return ContainerQueries.get(TYPE, Objects.requireNonNull(predicate, "predicate"));
     }
 
-    public static Item get(int... ids)
+    public static Item get(int[] ids)
     {
         return get(item -> Queries.id(item.id, ids));
+    }
+
+    public static Item get(Integer... ids)
+    {
+        return get(Queries.unboxIds(ids));
     }
 
     public static Item get(String... names)
@@ -131,9 +136,14 @@ public final class Inventory
         return get(name) != null;
     }
 
-    public static boolean contains(int... ids)
+    public static boolean contains(int[] ids)
     {
         return get(ids) != null;
+    }
+
+    public static boolean contains(Integer... ids)
+    {
+        return contains(Queries.unboxIds(ids));
     }
 
     public static boolean contains(String... names)
@@ -305,9 +315,14 @@ public final class Inventory
         return ContainerQueries.onlyContains(TYPE, item -> Queries.name(item.name, names));
     }
 
-    public static boolean onlyContains(int... ids)
+    public static boolean onlyContains(int[] ids)
     {
         return ContainerQueries.onlyContains(TYPE, item -> Queries.id(item.id, ids));
+    }
+
+    public static boolean onlyContains(Integer... ids)
+    {
+        return onlyContains(Queries.unboxIds(ids));
     }
 
     public static boolean onlyContains(Predicate<? super Item> predicate)
@@ -466,9 +481,14 @@ public final class Inventory
         return dropAll(item -> name != null && item.name.equalsIgnoreCase(name));
     }
 
-    public static boolean dropAll(int... ids)
+    public static boolean dropAll(int[] ids)
     {
         return dropAll(item -> Queries.id(item.id, ids));
+    }
+
+    public static boolean dropAll(Integer... ids)
+    {
+        return dropAll(Queries.unboxIds(ids));
     }
 
     public static boolean dropAll(String... names)
@@ -495,9 +515,14 @@ public final class Inventory
         return dropAll(item -> !Queries.name(item.name, names));
     }
 
-    public static boolean dropAllExcept(int... ids)
+    public static boolean dropAllExcept(int[] ids)
     {
         return dropAll(item -> !Queries.id(item.id, ids));
+    }
+
+    public static boolean dropAllExcept(Integer... ids)
+    {
+        return dropAllExcept(Queries.unboxIds(ids));
     }
 
     public static boolean dropAllExcept(Predicate<? super Item> keep)

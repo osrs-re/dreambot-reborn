@@ -35,4 +35,14 @@ public final class Queries
         }
         return false;
     }
+
+    /** Converts DreamBot's boxed ID varargs without changing primitive-array ABI calls. */
+    public static int[] unboxIds(Integer... ids)
+    {
+        if (ids == null) return null;
+        int[] result = new int[ids.length];
+        for (int index = 0; index < ids.length; index++)
+            result[index] = ids[index] == null ? Integer.MIN_VALUE : ids[index];
+        return result;
+    }
 }

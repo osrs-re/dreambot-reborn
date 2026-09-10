@@ -8,7 +8,7 @@ import com.dreambotreborn.api.internal.ClientThread;
 import com.dreambotreborn.api.methods.RSLoginResponse;
 import com.dreambotreborn.api.methods.worldhopper.WorldHopper;
 import com.dreambotreborn.api.utilities.Await;
-import net.runelite.api.GameState;
+import com.dreambotreborn.api.data.GameState;
 
 /** Standalone login-screen helpers used by scripts and the account manager. */
 public final class LoginUtility
@@ -54,7 +54,7 @@ public final class LoginUtility
     {
         GameState state = Client.getGameState();
         if (state == GameState.LOGGED_IN) return RSLoginResponse.LOGGED_IN;
-        if (state == GameState.LOGIN_SCREEN_AUTHENTICATOR) return RSLoginResponse.ENTER_AUTH;
+        if (state == GameState.ENTER_AUTH) return RSLoginResponse.ENTER_AUTH;
         if (state == GameState.LOGGING_IN) return RSLoginResponse.CONNECTING_TO_SERVER;
         return RSLoginResponse.LOGIN_SCREEN;
     }
